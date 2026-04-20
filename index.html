@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Our Love Gallery 💕</title>
+
+<style>
+body {
+    font-family: "Comic Sans MS", cursive;
+    background: linear-gradient(to bottom right, #ffe6f0, #fff0f5);
+    text-align: center;
+    margin: 0;
+}
+
+h1 { color: #ff4d88; margin-top: 20px; }
+
+.upload-box {
+    margin: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 15px;
+    display: inline-block;
+}
+
+button {
+    margin: 5px;
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    background: #ff66a3;
+    color: white;
+    cursor: pointer;
+}
+
+.gallery { padding: 20px; }
+
+.card {
+    background: white;
+    margin: 10px auto;
+    padding: 10px;
+    border-radius: 15px;
+    max-width: 300px;
+}
+
+.card img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.delete-btn {
+    background: red;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Our Love Story 💖</h1>
+
+<button onclick="login()">Login 🔐</button>
+
+<div class="upload-box" id="uploadBox" style="display:none;">
+    <input type="file" id="imageInput"><br>
+    <input type="date" id="dateInput"><br>
+    <input type="text" id="captionInput" placeholder="Cute caption..."><br>
+    <button onclick="addMemory()">Add Memory 💕</button>
+</div>
+
+<div id="gallery"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// 🔥 FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDj0nKzzm5s-dHnPko1mCqjBQ-kRL-yG1A",
+  authDomain: "art-gallery-54a36.firebaseapp.com",
+  projectId: "art-gallery-54a36",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth();
+
+const provider = new GoogleAuthProvider();
+
+// 👩‍❤️‍👨 Allowed users
+const allowedUsers = ["aayanyadav002@gmail.com", "renesha231@gmail.com"];
+
+// 🔐 Login
+window.login = function () {
+  signInWithPopup(auth, provider);
+};
+
+// 🔍 Auth check
+onAuthStateChanged(auth, user => {
+  if (!user || !allowedUsers.includes(user.email)) {
+    document.body.innerHTML = "<h2>🔒 Private Gallery 💖<br>Access Denied</h2>";
+  } else {
+    document.getElementById("uploadBox").style.display = "block";
+    render();
+  }
+});
+
+// ➕ Upload to Cloudinary + save to Firestore
+window.addMemory = async function () {
+    const file = document.getElementById("imageInput").files[0];
+    const date = document.getElementById("dateInput").value;
+    const caption = document.getElementById("captionInput").value;
+
+    if (!file || !date) return alert("Add photo + date!");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "ART GALLERY");
+
+    const res = await fetch("https://api.cloudinary.com/v1_1/ddolpgtum/image/upload", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await res.json();
+
+    await addDoc(collection(db, "memories"), {
+        img: data.secure_url,
+        date,
+        caption
+    });
+
+    render();
+};
+
+// 🗑 Delete
+window.deleteMemory = async function (id) {
+    await deleteDoc(doc(db, "memories", id));
+    render();
+};
+
+// 🎨 Render
+async function render() {
+    const container = document.getElementById("gallery");
+    container.innerHTML = "";
+
+    const snapshot = await getDocs(collection(db, "memories"));
+    let memories = [];
+
+    snapshot.forEach(docSnap => {
+        memories.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    memories.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    memories.forEach(m => {
+        container.innerHTML += `
+            <div class="card">
+                <img src="${m.img}">
+                <p>${m.date}</p>
+                <p>${m.caption}</p>
+                <button class="delete-btn" onclick="deleteMemory('${m.id}')">Delete</button>
+            </div>
+        `;
+    });
+}
+</script>
+
+</body>
+</html>
