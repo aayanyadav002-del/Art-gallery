@@ -97,12 +97,16 @@ window.login = function () {
 
 // 🔍 Auth check
 onAuthStateChanged(auth, user => {
-  if (!user || !allowedUsers.includes(user.email)) {
-    document.body.innerHTML = "<h2>🔒 Private Gallery 💖<br>Access Denied</h2>";
-  } else {
+    const email = user?.email || user?.providerData?.[0]?.email;
+
+    if (!user || !email || !allowedUsers.includes(email)) {
+        document.getElementById("uploadBox").style.display = "none";
+        document.getElementById("gallery").innerHTML = "<h2>🔒 Access Denied</h2>";
+        return;
+    }
+
     document.getElementById("uploadBox").style.display = "block";
     render();
-  }
 });
 
 // ➕ Upload to Cloudinary + save to Firestore
