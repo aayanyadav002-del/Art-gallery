@@ -102,11 +102,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } 
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    if (!file) return alert("Upload a photo!");
-
-    const reader = new FileReader();
-
-        const reader = new FileReader();
 
     reader.onload = function(e) {
         const card = document.createElement("div");
