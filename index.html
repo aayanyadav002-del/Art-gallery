@@ -84,6 +84,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
+    import { setPersistence, browserLocalPersistence } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+setPersistence(auth, browserLocalPersistence);
 
 const provider = new GoogleAuthProvider();
 
@@ -91,8 +95,14 @@ const provider = new GoogleAuthProvider();
 const allowedUsers = ["aayanyadav002@gmail.com", "renesha231@gmail.com"];
 
 // 🔐 Login
-window.login = function () {
-  signInWithPopup(auth, provider);
+window.login = async function () {
+    try {
+        const result = await signInWithPopup(auth, provider);
+        console.log("LOGIN SUCCESS:", result.user.email);
+    } catch (error) {
+        console.error("AUTH ERROR:", error.code, error.message);
+        alert("Login failed: " + error.message);
+    }
 };
 
 // 🔍 Auth check
